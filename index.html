@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>flaire.town</title>
+  <link rel="icon" href="icon.png" type="image/png" />
+  <style>
+    @font-face {
+      font-family: 'Soopafresh';
+      src: url('soopafre.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'DialogFont';
+      src: url('dialogfont.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    ::selection {
+      background: #ffffff;
+      color: #000000;
+    }
+    ::-moz-selection {
+      background: #ffffff;
+      color: #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+      color: #ffffff;
+      font-family: sans-serif;
+      cursor: default;
+    }
+    
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 4;
+      background: radial-gradient(circle, transparent 60%, rgba(0, 0, 0, 0.53) 150%);
+    }
+    
+    #stars-container {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+      transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1), transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+    #stars-container.fade-out {
+      opacity: 0;
+      transform: translateY(-60px);
+    }
+    .star {
+      position: absolute;
+      background: #ffffff;
+      border-radius: 50%;
+      animation: twinkle var(--twinkle-dur) cubic-bezier(0.4, 0, 0.2, 1) infinite alternate;
+      animation-delay: var(--twinkle-delay);
+    }
+    @keyframes twinkle {
+      0% { opacity: 0.15; }
+      100% { opacity: 1; }
+    }
+
+    #bgVideo {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      z-index: 0;
+      transform: translateY(100vh);
+      transition: transform 0.66s cubic-bezier(0.16, 1, 0.3, 1);
+      background: #000000;
+      opacity: 0.875;
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      perspective: 1000px;
+    }
+    .click-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      font-size: 2.2rem;
+      font-family: 'Soopafresh', sans-serif;
+      cursor: default;
+      outline: none;
+      user-select: none;
+      transform-style: preserve-3d;
+      transition: opacity 1s ease-in-out, transform 0.1s ease-out;
+    }
+    .click-btn.fade-out {
+      opacity: 0 !important;
+      transform: scale(0.95) translateY(30px) !important;
+      pointer-events: none;
+      transition: opacity 0.3s ease-out, transform 0.3s ease-out !important;
+    }
+    
+    .profile-card-wrapper {
+      position: absolute;
+      z-index: 3;
+      perspective: 1000px;
+      visibility: hidden;
+      transform: translateY(40px);
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .typewriter-text {
+      font-family: 'DialogFont', sans-serif;
+      font-size: 1.15rem;
+      color: rgba(255, 255, 255, 0.85);
+      min-height: 24px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      letter-spacing: 0.5px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .typewriter-text::after {
+      content: '|';
+      margin-left: 2px;
+      animation: cursor-blink 0.75s step-end infinite;
+      color: rgba(255, 255, 255, 0.85);
+      font-weight: normal;
+    }
+    @keyframes cursor-blink {
+      from, to { opacity: 0; }
+      50% { opacity: 1; }
+    }
+    .profile-card-wrapper.show {
+      visibility: visible;
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(10, 10, 15, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 24px 32px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      transform-style: preserve-3d;
+      transform: translateZ(0);
+      will-change: transform, opacity;
+      transition: transform 0.15s ease-out;
+    }
+    .pfp {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      pointer-events: none;
+    }
+    .profile-details {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      pointer-events: none;
+    }
+    .name {
+      font-family: 'Soopafresh', sans-serif;
+      font-size: 2.1rem;
+      color: #ffffff;
+      line-height: 1.1;
+    }
+    .badges {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .badge-icon {
+      width: 22px;
+      height: 22px;
+      transition: filter 0.3s ease;
+    }
+    .icon-dev {
+      color: #c084fc;
+      filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.85));
+    }
+    .icon-verified {
+      color: #38bdf8;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.85));
+    }
+
+    .volume-container {
+      position: fixed;
+      bottom: 24px;
+      left: calc(50% - 100px);
+      z-index: 10;
+      background: rgba(10, 10, 15, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 12px 16px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 200px;
+      visibility: hidden;
+      transform: translateY(20px) translateZ(0);
+      will-change: transform, opacity;
+      transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+      user-select: none;
+      cursor: default;
+    }
+    .volume-container.show {
+      visibility: visible;
+      transform: translateY(0);
+    }
+    .drag-handle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+    }
+    .volume-slider-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .volume-slider-wrapper input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.15);
+      height: 4px;
+      border-radius: 2px;
+      outline: none;
+      cursor: default;
+    }
+    .volume-slider-wrapper input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #ffffff;
+      transition: transform 0.1s ease;
+      cursor: default;
+    }
+    .volume-slider-wrapper input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    #volumePercent {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.8);
+      min-width: 32px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+<div id="stars-container"></div>
+<video id="bgVideo" src="background_video.mp4" loop playsinline></video>
+
+<main class="container">
+  <button class="click-btn" id="clickBtn">Click anywhere</button>
+  
+  <div class="profile-card-wrapper" id="profileCardWrapper">
+    <div class="typewriter-text" id="typewriterText"></div>
+    <div class="profile-card" id="profileCard">
+      <img src="icon.png" alt="Flare" class="pfp" />
+      <div class="profile-details">
+        <div class="name">Flare</div>
+        <div class="badges">
+          <svg class="badge-icon icon-dev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="16 18 22 12 16 6"></polyline>
+            <polyline points="8 6 2 12 8 18"></polyline>
+          </svg>
+          <svg class="badge-icon icon-verified" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            <path d="m9 11 2 2 4-4"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="volume-container" id="volumeContainer">
+  <div class="drag-handle">
+    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+      <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+    </svg>
+    <span>Volume</span>
+  </div>
+  <div class="volume-slider-wrapper">
+    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.1" />
+    <span id="volumePercent">10%</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  var btn = document.getElementById('clickBtn');
+  var cardWrapper = document.getElementById('profileCardWrapper');
+  var card = document.getElementById('profileCard');
+  var starsContainer = document.getElementById('stars-container');
+  var volContainer = document.getElementById('volumeContainer');
+  var volumeSlider = document.getElementById('volumeSlider');
+  var volumePercent = document.getElementById('volumePercent');
+  var bgVideo = document.getElementById('bgVideo');
+  var isActivated = false;
+  var currentVolume = 0.1;
+
+  var typewriterEl = document.getElementById('typewriterText');
+  var fullText = "Welcome to Flare's Biolink!";
+  var typeIndex = 0;
+  var isDeleting = false;
+  var typewriterTimeout = null;
+  var audioCtx = null;
+
+  function initAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+  }
+
+  function playClickSound(isDelete) {
+    initAudioContext();
+    if (!audioCtx) return;
+    
+    var osc = audioCtx.createOscillator();
+    var gainNode = audioCtx.createGain();
+    
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'triangle';
+    var baseFreq = isDelete ? 350 : 500;
+    var freq = baseFreq + (Math.random() * 60 - 30);
+    
+    var now = audioCtx.currentTime;
+    osc.frequency.setValueAtTime(freq * 1.5, now);
+    osc.frequency.exponentialRampToValueAtTime(freq, now + 0.02);
+    
+    var volumeScale = currentVolume * 0.15;
+    gainNode.gain.setValueAtTime(volumeScale, now);
+    gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.04);
+    
+    osc.start(now);
+    osc.stop(now + 0.05);
+  }
+
+  function runTypewriter() {
+    if (!isActivated) return;
+    
+    if (!isDeleting) {
+      if (typeIndex < fullText.length) {
+        typewriterEl.textContent += fullText.charAt(typeIndex);
+        typeIndex++;
+        playClickSound(false);
+        var typingSpeed = 80 + Math.random() * 40;
+        typewriterTimeout = setTimeout(runTypewriter, typingSpeed);
+      } else {
+        isDeleting = true;
+        typewriterTimeout = setTimeout(runTypewriter, 2000);
+      }
+    } else {
+      if (typeIndex > 0) {
+        typewriterEl.textContent = fullText.substring(0, typeIndex - 1);
+        typeIndex--;
+        playClickSound(true);
+        var deletingSpeed = 40;
+        typewriterTimeout = setTimeout(runTypewriter, deletingSpeed);
+      } else {
+        isDeleting = false;
+      }
+    }
+  }
+
+  var starCount = 50;
+  for (var i = 0; i < starCount; i++) {
+    var star = document.createElement('div');
+    star.className = 'star';
+    var size = Math.random() * 2 + 1;
+    var left = Math.random() * 100;
+    var top = Math.random() * 100;
+    var delay = Math.random() * 2;
+    var duration = 0.5 + Math.random() * 1.2;
+    
+    star.style.width = size + 'px';
+    star.style.height = size + 'px';
+    star.style.left = left + '%';
+    star.style.top = top + '%';
+    star.style.setProperty('--twinkle-delay', delay + 's');
+    star.style.setProperty('--twinkle-dur', duration + 's');
+    starsContainer.appendChild(star);
+  }
+
+  volumeSlider.addEventListener('input', function() {
+    currentVolume = parseFloat(volumeSlider.value);
+    volumePercent.textContent = Math.round(currentVolume * 100) + '%';
+    if (isActivated) {
+      bgVideo.volume = currentVolume;
+    }
+  });
+
+  function activate() {
+    if (isActivated) return;
+    isActivated = true;
+    
+    initAudioContext();
+    
+    btn.classList.add('fade-out');
+    starsContainer.classList.add('fade-out');
+    
+    cardWrapper.classList.add('show');
+    volContainer.classList.add('show');
+    
+    bgVideo.style.transform = 'translateY(0)';
+
+    bgVideo.volume = 0;
+    bgVideo.play().catch(function(err) {
+      console.warn("Video autoplay blocked or failed:", err);
+    });
+
+    var step = 0.05;
+    var fadeInterval = setInterval(function() {
+      if (bgVideo.volume < currentVolume) {
+        bgVideo.volume = Math.min(currentVolume, bgVideo.volume + step);
+      } else {
+        clearInterval(fadeInterval);
+      }
+    }, 40);
+
+    setTimeout(runTypewriter, 1000);
+  }
+
+  document.addEventListener('click', activate);
+
+  bgVideo.addEventListener('ended', function() {
+    bgVideo.currentTime = 0;
+    bgVideo.play().catch(function(e) {
+      console.warn("Loop play failed:", e);
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (isActivated) return;
+    var centerX = window.innerWidth / 2;
+    var centerY = window.innerHeight / 2;
+    var percentX = (e.clientX - centerX) / centerX;
+    var percentY = (e.clientY - centerY) / centerY;
+
+    var maxRotation = 15;
+    var rotateX = -percentY * maxRotation;
+    var rotateY = percentX * maxRotation;
+
+    btn.style.transform = 'rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg)';
+  });
+
+  card.addEventListener('mousemove', function(e) {
+    var rect = card.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+    var y = e.clientY - rect.top;
+
+    var centerX = rect.width / 2;
+    var centerY = rect.height / 2;
+
+    var percentX = (x - centerX) / centerX;
+    var percentY = (y - centerY) / centerY;
+
+    var maxRotation = 15;
+    var rotateX = -percentY * maxRotation;
+    var rotateY = percentX * maxRotation;
+
+    card.style.transition = 'transform 0.1s ease-out';
+    card.style.transform = 'rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) scale(1.02)';
+  });
+
+  card.addEventListener('mouseleave', function() {
+    card.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1)';
+    card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+  });
+
+  var isDragging = false;
+  var startX, startY, initialX, initialY;
+
+  function startDrag(clientX, clientY) {
+    isDragging = true;
+    startX = clientX;
+    startY = clientY;
+
+    var rect = volContainer.getBoundingClientRect();
+    initialX = rect.left;
+    initialY = rect.top;
+
+    volContainer.style.transition = 'none';
+
+    volContainer.style.bottom = 'auto';
+    volContainer.style.left = initialX + 'px';
+    volContainer.style.top = initialY + 'px';
+  }
+
+  function onDrag(clientX, clientY) {
+    if (!isDragging) return;
+    var dx = clientX - startX;
+    var dy = clientY - startY;
+
+    var newLeft = initialX + dx;
+    var newTop = initialY + dy;
+
+    var maxLeft = window.innerWidth - volContainer.offsetWidth;
+    var maxTop = window.innerHeight - volContainer.offsetHeight;
+
+    newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+    newTop = Math.max(0, Math.min(newTop, maxTop));
+
+    volContainer.style.left = newLeft + 'px';
+    volContainer.style.top = newTop + 'px';
+  }
+
+  function stopDrag() {
+    isDragging = false;
+    volContainer.style.transition = 'opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1)';
+  }
+
+  volContainer.addEventListener('mousedown', function(e) {
+    if (e.target.id === 'volumeSlider') return;
+    startDrag(e.clientX, e.clientY);
+    
+    var mouseMoveHandler = function(me) { onDrag(me.clientX, me.clientY); };
+    var mouseUpHandler = function() {
+      stopDrag();
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
+    };
+
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
+  });
+
+  volContainer.addEventListener('touchstart', function(e) {
+    if (e.target.id === 'volumeSlider') return;
+    var touch = e.touches[0];
+    startDrag(touch.clientX, touch.clientY);
+
+    var touchMoveHandler = function(te) {
+      te.preventDefault();
+      var t = te.touches[0];
+      onDrag(t.clientX, t.clientY);
+    };
+    var touchEndHandler = function() {
+      stopDrag();
+      document.removeEventListener('touchmove', touchMoveHandler);
+      document.removeEventListener('touchend', touchEndHandler);
+    };
+
+    document.addEventListener('touchmove', touchMoveHandler, { passive: false });
+    document.addEventListener('touchend', touchEndHandler);
+  });
+})();
+</script>
+</body>
+</html>
